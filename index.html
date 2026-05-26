@@ -1,0 +1,633 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>英语单词听写 - 四线格版</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Arial', sans-serif;
+        }
+
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .home-container {
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            text-align: center;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+            max-width: 500px;
+            width: 100%;
+        }
+
+        .home-title {
+            font-size: 2rem;
+            color: #333;
+            margin-bottom: 30px;
+        }
+
+        .unit-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+
+        .unit-btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 15px;
+            font-size: 1.1rem;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .unit-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .unit-btn-all {
+            background: linear-gradient(135deg, #2ecc71 0%, #27ae60 100%);
+            grid-column: span 4;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 500px;
+            perspective: 1000px;
+        }
+
+        .card {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+            min-height: 420px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 30px;
+            position: relative;
+            transform-style: preserve-3d;
+            transition: transform 0.6s;
+        }
+
+        .card.flipped {
+            transform: rotateY(180deg);
+        }
+
+        .card-front, .card-back {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            backface-visibility: hidden;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 30px;
+        }
+
+        .card-back {
+            transform: rotateY(180deg);
+        }
+
+        /* 四线格输入框 */
+        .four-line-container {
+            width: 100%;
+            max-width: 320px;
+            height: 80px;
+            background-image: 
+                repeating-linear-gradient(
+                    transparent,
+                    transparent 18px,
+                    #99c2e1 18px,
+                    #99c2e1 20px,
+                    transparent 20px,
+                    transparent 38px,
+                    #ffb6b6 38px,
+                    #ffb6b6 40px,
+                    transparent 40px,
+                    transparent 58px,
+                    #99c2e1 58px,
+                    #99c2e1 60px,
+                    transparent 60px,
+                    transparent 78px,
+                    #99c2e1 78px,
+                    #99c2e1 80px
+                );
+            position: relative;
+            margin-bottom: 20px;
+        }
+
+        .word-input {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            font-size: 2.2rem;
+            text-align: center;
+            border: none;
+            outline: none;
+            background: transparent;
+            line-height: 80px;
+            letter-spacing: 2px;
+        }
+
+        .chinese-meaning {
+            font-size: 1.5rem;
+            color: #333;
+            margin-bottom: 15px;
+            font-weight: bold;
+        }
+
+        .phonetic {
+            font-size: 1.2rem;
+            color: #667eea;
+            cursor: pointer;
+            margin-bottom: 30px;
+            padding: 5px 10px;
+            border-radius: 8px;
+            transition: background-color 0.3s;
+        }
+
+        .phonetic:hover {
+            background-color: #f0f0ff;
+        }
+
+        .btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 12px 35px;
+            font-size: 1.1rem;
+            border-radius: 30px;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+            margin: 5px;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-wrong {
+            background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
+        }
+
+        .btn-back {
+            background: #95a5a6;
+            margin-top: 10px;
+        }
+
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .correct-answer {
+            font-size: 2.5rem;
+            font-weight: bold;
+            color: #2ecc71;
+            margin-bottom: 20px;
+        }
+
+        .result-message {
+            font-size: 1.3rem;
+            margin-bottom: 20px;
+        }
+
+        .correct {
+            color: #2ecc71;
+        }
+
+        .incorrect {
+            color: #e74c3c;
+        }
+
+        .progress {
+            position: absolute;
+            top: 15px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 1rem;
+            color: #666;
+        }
+
+        .score-container {
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            text-align: center;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+            max-width: 500px;
+            width: 100%;
+        }
+
+        .score-title {
+            font-size: 2rem;
+            color: #333;
+            margin-bottom: 30px;
+        }
+
+        .score-item {
+            font-size: 1.3rem;
+            margin: 15px 0;
+            color: #555;
+        }
+
+        .restart-btn {
+            background: linear-gradient(135deg, #2ecc71 0%, #27ae60 100%);
+            margin-top: 20px;
+        }
+
+        .hidden {
+            display: none !important;
+        }
+    </style>
+</head>
+<body>
+    <!-- 首页：选择单元 -->
+    <div class="home-container" id="home-container">
+        <h1 class="home-title">📚 选择听写单元</h1>
+        <div class="unit-grid">
+            <button class="unit-btn" onclick="selectUnit(1)">Unit 1</button>
+            <button class="unit-btn" onclick="selectUnit(2)">Unit 2</button>
+            <button class="unit-btn" onclick="selectUnit(3)">Unit 3</button>
+            <button class="unit-btn" onclick="selectUnit(4)">Unit 4</button>
+            <button class="unit-btn" onclick="selectUnit(5)">Unit 5</button>
+            <button class="unit-btn" onclick="selectUnit(6)">Unit 6</button>
+            <button class="unit-btn" onclick="selectUnit(7)">Unit 7</button>
+            <button class="unit-btn" onclick="selectUnit(8)">Unit 8</button>
+            <button class="unit-btn unit-btn-all" onclick="selectUnit('all')">📖 全部单词</button>
+        </div>
+    </div>
+
+    <!-- 听写页面 -->
+    <div class="container hidden" id="quiz-container">
+        <div class="progress" id="progress">1 / 10</div>
+        <div class="card" id="card">
+            <div class="card-front">
+                <div class="four-line-container">
+                    <input type="text" class="word-input" id="word-input" placeholder="">
+                </div>
+                <div class="chinese-meaning" id="chinese-meaning"></div>
+                <div class="phonetic" id="phonetic" onclick="speakWord()">🔊</div>
+                <button class="btn" id="submit-btn" onclick="submitAnswer()">提交</button>
+                <button class="btn btn-back" onclick="backToHome()">返回选择</button>
+            </div>
+            <div class="card-back">
+                <div class="result-message" id="result-message"></div>
+                <div class="correct-answer" id="correct-answer"></div>
+                <button class="btn" id="next-btn" onclick="nextWord()">下一题</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 成绩页面 -->
+    <div class="score-container hidden" id="score-container">
+        <h1 class="score-title">🎉 听写完成！</h1>
+        <div class="score-item">总题数：<span id="total-count">0</span></div>
+        <div class="score-item">✅ 做对：<span id="correct-count">0</span> 题</div>
+        <div class="score-item">❌ 做错：<span id="wrong-count">0</span> 题</div>
+        <div class="score-item" style="font-size: 1.5rem; margin-top: 20px;">得分：<span id="final-score">0</span> 分</div>
+        <button class="btn restart-btn" onclick="restartQuiz()">重新听写</button>
+        <button class="btn btn-wrong" onclick="startWrongBook()" id="wrongBtn">进入错题本</button>
+        <button class="btn btn-back" onclick="backToHome()">返回单元选择</button>
+    </div>
+
+    <script>
+        // ========== 单词库：按Unit分组 ==========
+        const unitWords = {
+            1: [
+                {word:"sun",chinese:"太阳",phonetic:"/sʌn/"},
+                {word:"strong",chinese:"强烈的；强壮的",phonetic:"/strɒŋ/"},
+                {word:"wind",chinese:"风",phonetic:"/wɪnd/"},
+                {word:"fruit",chinese:"水果",phonetic:"/fruːt/"},
+                {word:"thin",chinese:"薄的；瘦的",phonetic:"/θɪn/"},
+                {word:"tall",chinese:"高大的",phonetic:"/tɔːl/"},
+                {word:"grass",chinese:"草",phonetic:"/ɡrɑːs/"},
+                {word:"vegetable",chinese:"蔬菜",phonetic:"/ˈvedʒtəbl/"},
+                {word:"grow",chinese:"种植；生长",phonetic:"/ɡrəʊ/"},
+                {word:"carrot",chinese:"胡萝卜",phonetic:"/ˈkærət/"},
+                {word:"fresh",chinese:"新鲜的；清新的",phonetic:"/freʃ/"},
+                {word:"bamboo",chinese:"竹子",phonetic:"/ˌbæmˈbuː/"},
+                {word:"winter",chinese:"冬季",phonetic:"/ˈwɪntə/"},
+                {word:"summer",chinese:"夏季",phonetic:"/ˈsʌmə/"},
+                {word:"apple",chinese:"苹果",phonetic:"/ˈæpl/"},
+                {word:"umbrella",chinese:"雨伞",phonetic:"/ʌmˈbrelə/"},
+                {word:"delicious",chinese:"美味的",phonetic:"/dɪˈlɪʃəs/"},
+                {word:"live",chinese:"存活；居住",phonetic:"/lɪv/"}
+            ],
+            2: [
+                {word:"easy",chinese:"容易的，轻松的",phonetic:"/ˈiːzi/"},
+                {word:"star",chinese:"星星",phonetic:"/stɑː/"},
+                {word:"rose",chinese:"玫瑰",phonetic:"/rəʊz/"},
+                {word:"those",chinese:"那些",phonetic:"/ðəʊz/"},
+                {word:"clever",chinese:"聪明的",phonetic:"/ˈklevə/"},
+                {word:"as",chinese:"如同；作为",phonetic:"/æz/"},
+                {word:"fox",chinese:"狐狸",phonetic:"/fɒks/"},
+                {word:"mouse",chinese:"老鼠",phonetic:"/maʊs/"},
+                {word:"busy",chinese:"忙碌的",phonetic:"/ˈbɪzi/"},
+                {word:"bee",chinese:"蜜蜂",phonetic:"/biː/"},
+                {word:"slow",chinese:"使……慢，慢的",phonetic:"/sləʊ/"},
+                {word:"honey",chinese:"蜂蜜",phonetic:"/ˈhʌni/"},
+                {word:"someone",chinese:"某人",phonetic:"/ˈsʌmwʌn/"},
+                {word:"brother",chinese:"兄弟",phonetic:"/ˈbrʌðə/"},
+                {word:"room",chinese:"房间；空间",phonetic:"/ruːm/"},
+                {word:"say",chinese:"说",phonetic:"/seɪ/"},
+                {word:"fast",chinese:"快的，迅速的",phonetic:"/fɑːst/"}
+            ],
+            3: [
+                {word:"milk",chinese:"牛奶",phonetic:"/mɪlk/"},
+                {word:"meat",chinese:"肉",phonetic:"/miːt/"},
+                {word:"egg",chinese:"鸡蛋",phonetic:"/eɡ/"},
+                {word:"chicken",chinese:"鸡肉",phonetic:"/ˈtʃɪkɪn/"},
+                {word:"healthy",chinese:"健康的",phonetic:"/ˈhelθi/"},
+                {word:"enough",chinese:"足够的，充足的",phonetic:"/ɪˈnʌf/"},
+                {word:"parent",chinese:"父亲（或母亲）",phonetic:"/ˈpeərənt/"},
+                {word:"often",chinese:"经常，常常",phonetic:"/ˈɒfn/"},
+                {word:"short",chinese:"矮的；短的",phonetic:"/ʃɔːt/"},
+                {word:"still",chinese:"仍然",phonetic:"/stɪl/"},
+                {word:"hungry",chinese:"饥饿的",phonetic:"/ˈhʌŋɡri/"},
+                {word:"rain",chinese:"下雨；雨",phonetic:"/reɪn/"},
+                {word:"cat",chinese:"猫",phonetic:"/kæt/"},
+                {word:"dog",chinese:"狗",phonetic:"/dɒɡ/"},
+                {word:"black",chinese:"黑色的",phonetic:"/blæk/"},
+                {word:"sheep",chinese:"羊",phonetic:"/ʃiːp/"},
+                {word:"dark",chinese:"深色的；黑暗的",phonetic:"/dɑːk/"},
+                {word:"duck",chinese:"鸭子",phonetic:"/dʌk/"},
+                {word:"cute",chinese:"可爱的",phonetic:"/kjuːt/"},
+                {word:"pig",chinese:"猪",phonetic:"/pɪɡ/"}
+            ],
+            4: [
+                {word:"basketball",chinese:"篮球；篮球运动",phonetic:"/ˈbɑːskɪtbɔːl/"},
+                {word:"ping-pong",chinese:"乒乓",phonetic:"/ˈpɪŋ pɒŋ/"},
+                {word:"month",chinese:"月；月份",phonetic:"/mʌnθ/"},
+                {word:"Tuesday",chinese:"星期二",phonetic:"/ˈtjuːzdeɪ/"},
+                {word:"Wednesday",chinese:"星期三",phonetic:"/ˈwenzdeɪ/"},
+                {word:"Thursday",chinese:"星期四",phonetic:"/ˈθɜːzdeɪ/"},
+                {word:"Friday",chinese:"星期五",phonetic:"/ˈfraɪdeɪ/"},
+                {word:"start",chinese:"开始",phonetic:"/stɑːt/"},
+                {word:"by",chinese:"通过；在旁边",phonetic:"/baɪ/"},
+                {word:"train",chinese:"训练；火车",phonetic:"/treɪn/"},
+                {word:"catch",chinese:"赶上；抓住",phonetic:"/kætʃ/"},
+                {word:"tired",chinese:"疲倦的",phonetic:"/ˈtaɪəd/"},
+                {word:"everything",chinese:"一切，所有事物",phonetic:"/ˈevriθɪŋ/"},
+                {word:"less",chinese:"更少，较少",phonetic:"/les/"},
+                {word:"candy",chinese:"糖果",phonetic:"/ˈkændi/"},
+                {word:"ice cream",chinese:"冰淇淋",phonetic:"/ˈaɪs kriːm/"},
+                {word:"banana",chinese:"香蕉",phonetic:"/bəˈnɑːnə/"},
+                {word:"second",chinese:"第二；秒",phonetic:"/ˈsekənd/"},
+                {word:"third",chinese:"第三",phonetic:"/θɜːd/"}
+            ],
+            5: [
+                {word:"windy",chinese:"多风的，风大的",phonetic:"/ˈwɪndi/"},
+                {word:"town",chinese:"城镇；城区",phonetic:"/taʊn/"},
+                {word:"spring",chinese:"春天",phonetic:"/sprɪŋ/"},
+                {word:"kite",chinese:"风筝",phonetic:"/kaɪt/"},
+                {word:"autumn",chinese:"秋季",phonetic:"/ˈɔːtəm/"},
+                {word:"beach",chinese:"海滩，沙滩",phonetic:"/biːtʃ/"},
+                {word:"season",chinese:"季节",phonetic:"/ˈsiːzn/"},
+                {word:"Australia",chinese:"澳大利亚",phonetic:"/ɔːˈstreɪliə/"},
+                {word:"September",chinese:"九月",phonetic:"/sepˈtembə/"},
+                {word:"December",chinese:"十二月",phonetic:"/dɪˈsembə/"},
+                {word:"February",chinese:"二月",phonetic:"/ˈfebruəri/"},
+                {word:"March",chinese:"三月",phonetic:"/mɑːtʃ/"},
+                {word:"June",chinese:"六月",phonetic:"/dʒuːn/"},
+                {word:"August",chinese:"八月",phonetic:"/ˈɔːɡəst/"},
+                {word:"China",chinese:"中国",phonetic:"/ˈtʃaɪnə/"},
+                {word:"London",chinese:"伦敦",phonetic:"/ˈlʌndən/"},
+                {word:"which",chinese:"哪些；哪一个",phonetic:"/wɪtʃ/"}
+            ],
+            6: [
+                {word:"shirt",chinese:"衬衫",phonetic:"/ʃɜːt/"},
+                {word:"jacket",chinese:"夹克，短外套",phonetic:"/ˈdʒækɪt/"},
+                {word:"hang",chinese:"悬挂",phonetic:"/hæŋ/"},
+                {word:"trousers",chinese:"裤子，长裤",phonetic:"/ˈtraʊzəz/"},
+                {word:"sweater",chinese:"毛衣",phonetic:"/ˈswetə/"},
+                {word:"coat",chinese:"外套，大衣",phonetic:"/kəʊt/"},
+                {word:"pink",chinese:"粉色的",phonetic:"/pɪŋk/"},
+                {word:"clothes",chinese:"衣服",phonetic:"/kləʊðz/"},
+                {word:"group",chinese:"组，群",phonetic:"/ɡruːp/"},
+                {word:"tidy",chinese:"整理；整洁的，整齐的",phonetic:"/ˈtaɪdi/"},
+                {word:"sock",chinese:"袜子",phonetic:"/sɒk/"},
+                {word:"shoe",chinese:"鞋子",phonetic:"/ʃuː/"},
+                {word:"box",chinese:"盒子，箱子",phonetic:"/bɒks/"}
+            ],
+            7: [
+                {word:"behind",chinese:"在……后面",phonetic:"/bɪˈhaɪnd/"},
+                {word:"same",chinese:"相同的",phonetic:"/seɪm/"},
+                {word:"city",chinese:"城市",phonetic:"/ˈsɪti/"},
+                {word:"cousin",chinese:"堂兄弟/姐妹；表兄弟/姐妹",phonetic:"/ˈkʌzn/"},
+                {word:"world",chinese:"世界",phonetic:"/wɜːld/"},
+                {word:"both",chinese:"两者，双方",phonetic:"/bəʊθ/"},
+                {word:"tomorrow",chinese:"明天",phonetic:"/təˈmɒrəʊ/"},
+                {word:"video",chinese:"视频",phonetic:"/ˈvɪdiəʊ/"}
+            ],
+            8: [
+                {word:"shop",chinese:"购物；商店",phonetic:"/ʃɒp/"},
+                {word:"mall",chinese:"商场",phonetic:"/mɔːl/"},
+                {word:"park",chinese:"公园",phonetic:"/pɑːk/"},
+                {word:"cinema",chinese:"电影院",phonetic:"/ˈsɪnəmə/"},
+                {word:"film",chinese:"电影",phonetic:"/fɪlm/"},
+                {word:"zoo",chinese:"动物园",phonetic:"/zuː/"},
+                {word:"market",chinese:"市场",phonetic:"/ˈmɑːkɪt/"},
+                {word:"supermarket",chinese:"超市",phonetic:"/ˈsuːpəmɑːkɪt/"},
+                {word:"than",chinese:"比；比较",phonetic:"/ðæn/"},
+                {word:"bye",chinese:"再见，拜拜",phonetic:"/baɪ/"},
+                {word:"choice",chinese:"选择",phonetic:"/tʃɔɪs/"},
+                {word:"hear",chinese:"听说；听到",phonetic:"/hɪə/"},
+                {word:"later",chinese:"稍后；后来",phonetic:"/ˈleɪtə/"}
+            ]
+        };
+
+        let words = [];
+        let wrongWords = [];
+        let currentIndex = 0;
+        let correctCount = 0;
+        let wrongCount = 0;
+        let isWrongMode = false;
+        let selectedUnit = null;
+
+        // 打乱顺序
+        function shuffle(arr) {
+            let newArr = [...arr];
+            for (let i = newArr.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [newArr[i], newArr[j]] = [newArr[j], newArr[i]];
+            }
+            return newArr;
+        }
+
+        // 选择单元
+        function selectUnit(unit) {
+            selectedUnit = unit;
+            if (unit === 'all') {
+                // 合并所有单元的单词
+                words = [];
+                for (let u in unitWords) {
+                    words = words.concat(unitWords[u]);
+                }
+            } else {
+                words = [...unitWords[unit]];
+            }
+            words = shuffle(words);
+            currentIndex = 0;
+            correctCount = 0;
+            wrongCount = 0;
+            wrongWords = [];
+            isWrongMode = false;
+            loadWord();
+            showQuiz();
+        }
+
+        // 返回首页
+        function backToHome() {
+            document.getElementById('home-container').classList.remove('hidden');
+            document.getElementById('quiz-container').classList.add('hidden');
+            document.getElementById('score-container').classList.add('hidden');
+        }
+
+        // 初始化错题本模式
+        function startWrongBook() {
+            if(wrongWords.length === 0){
+                alert("暂无错题，太棒啦！");
+                return;
+            }
+            isWrongMode = true;
+            words = shuffle(wrongWords);
+            currentIndex = 0;
+            loadWord();
+            showQuiz();
+        }
+
+        // 加载题目
+        function loadWord() {
+            if (currentIndex >= words.length) {
+                showScore();
+                return;
+            }
+            const item = words[currentIndex];
+            document.getElementById('chinese-meaning').textContent = item.chinese;
+            document.getElementById('phonetic').textContent = item.phonetic + " 🔊";
+            document.getElementById('word-input').value = "";
+            document.getElementById('word-input').focus();
+            document.getElementById('progress').textContent = `${currentIndex + 1} / ${words.length}${isWrongMode ? '（错题本）' : ''}`;
+            document.getElementById('card').classList.remove('flipped');
+            document.getElementById('submit-btn').disabled = false;
+        }
+
+        // 单词发音
+        function speakWord() {
+            const word = words[currentIndex].word;
+            const utterance = new SpeechSynthesisUtterance(word);
+            utterance.lang = 'en-US';
+            utterance.rate = 0.8;
+            speechSynthesis.speak(utterance);
+        }
+
+        // 英文鼓励语音
+        function speakEncouragement(isCorrect) {
+            let text = isCorrect ? "Excellent job!" : "Keep it up!";
+            const utterance = new SpeechSynthesisUtterance(text);
+            utterance.lang = 'en-US';
+            utterance.rate = 1;
+            utterance.pitch = isCorrect ? 1.3 : 1;
+            speechSynthesis.speak(utterance);
+        }
+
+        // 提交答案
+        function submitAnswer() {
+            document.getElementById('submit-btn').disabled = true;
+            const userInput = document.getElementById('word-input').value.trim().toLowerCase();
+            const correctWord = words[currentIndex].word.toLowerCase();
+            const item = words[currentIndex];
+
+            const resultMessage = document.getElementById('result-message');
+            const correctAnswer = document.getElementById('correct-answer');
+
+            if (userInput === correctWord) {
+                correctCount++;
+                resultMessage.textContent = "✅ 回答正确！";
+                resultMessage.className = "result-message correct";
+                speakEncouragement(true);
+            } else {
+                wrongCount++;
+                resultMessage.textContent = "❌ 回答错误";
+                resultMessage.className = "result-message incorrect";
+                speakEncouragement(false);
+                if(!isWrongMode) saveWrongWord(item);
+            }
+            correctAnswer.textContent = item.word;
+            document.getElementById('card').classList.add('flipped');
+        }
+
+        // 保存错题
+        function saveWrongWord(item){
+            const has = wrongWords.some(w=>w.word === item.word);
+            if(!has){
+                wrongWords.push(item);
+            }
+        }
+
+        // 下一题
+        function nextWord() {
+            currentIndex++;
+            loadWord();
+        }
+
+        // 显示分数
+        function showScore() {
+            document.getElementById('quiz-container').classList.add('hidden');
+            document.getElementById('score-container').classList.remove('hidden');
+            document.getElementById('total-count').textContent = words.length;
+            document.getElementById('correct-count').textContent = correctCount;
+            document.getElementById('wrong-count').textContent = wrongCount;
+            let score =  (correctCount / words.length * 100).toFixed(1);
+            document.getElementById('final-score').textContent = isWrongMode ? '' : score;
+            document.getElementById('wrongBtn').style.display = isWrongMode ? 'none' : 'inline-block';
+        }
+
+        // 重新开始当前单元
+        function restartQuiz() {
+            if (selectedUnit === 'all') {
+                selectUnit('all');
+            } else {
+                selectUnit(selectedUnit);
+            }
+        }
+
+        // 显示听写页面
+        function showQuiz(){
+            document.getElementById('home-container').classList.add('hidden');
+            document.getElementById('quiz-container').classList.remove('hidden');
+            document.getElementById('score-container').classList.add('hidden');
+        }
+
+        // 回车提交
+        document.getElementById('word-input').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                submitAnswer();
+            }
+        });
+    </script>
+</body>
+</html>
